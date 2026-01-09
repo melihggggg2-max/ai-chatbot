@@ -1,0 +1,118 @@
+ai-chatbot-maker/
+├── app/
+│   ├── page.tsx
+│   ├── layout.tsx
+│   └── api/
+│       └── chat/
+│           └── route.ts
+├── components/
+│   └── Chat.tsx
+├── lib/
+│   └── openai.ts
+├── public/
+├── .env.example
+├── package.json
+└── README.md
+{
+  "name": "ai-chatbot-maker",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "14.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "openai": "^4.0.0"
+  }
+}
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body style={{ fontFamily: "Arial", background: "#f5f5f5" }}>
+        {children}
+      </body>
+    </html>
+  );
+}
+import Chat from "@/components/Chat";
+
+export default function Home() {
+  return (
+    <main style={{ maxWidth: 600, margin: "50px auto" }}>
+      <h1>AI Chatbot Maker</h1>
+      <Chat />
+    </main>
+  );
+}
+"use client";
+import { useState } from "react";
+
+export default function Chat() {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<string[]>([]);
+
+  async function sendMessage() {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ message: input }),
+    });
+    const data = await res.json();
+    setMessages([...messages, "You: " + input, "Bot: " + data.reply]);
+    setInput("");
+  }
+
+  return (
+    <div>
+      <div>
+        {messages.map((m, i) => (
+          <p key={i}>{m}</p>
+        ))}
+      </div>
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        placeholder="Ask something..."
+      />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  );
+}
+import OpenAI from "openai";
+import { NextResponse } from "next/server";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+export async function POST(req: Request) {
+  const { message } = await req.json();
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: message }],
+  });
+
+  return NextResponse.json({
+    reply: completion.choices[0].message.content,
+  });
+}
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
+# AI Chatbot Maker
+
+Next.js + OpenAI starter project.
+
+## Setup
+1. npm install
+2. cp .env.example .env
+3. add OpenAI API key
+4. npm run dev
+git init
+git add .
+git commit -m "Initial AI chatbot maker"
+git branch -M main
+git remote add origin https://github.com/USERNAME/ai-chatbot-maker.git
+git push -u origin main
+
